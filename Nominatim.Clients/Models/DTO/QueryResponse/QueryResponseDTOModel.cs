@@ -5,9 +5,9 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace Nominatim.Clients.Models
+namespace Nominatim.Clients.Models.DTO.QueryResponse
 {
-    public class ApiResponseModel
+    public class QueryResponseDTOModel
     {
         [JsonPropertyName("place_id")]
         public int PlaceId { get; set; }

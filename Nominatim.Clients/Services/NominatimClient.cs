@@ -1,5 +1,7 @@
 ﻿using Nominatim.Clients.Enums;
-using Nominatim.Clients.Models;
+using Nominatim.Clients.Models.DTO.Query;
+using Nominatim.Clients.Models.DTO.QueryResponse;
+using Nominatim.Clients.Models.DTO.Response;
 using Nominatim.Clients.Services.Interfaces;
 using System.Net.Http;
 using System.Text.Json;
@@ -20,7 +22,7 @@ namespace Nominatim.Clients.Services
             _httpClient.DefaultRequestHeaders.Add("User-Agent", "C# NominatimClient");
         }
 
-        public async Task<RequestResponseModel> Search(StructuredQuerySearchModel searchModel)
+        public async Task<ResponseDTOModel> Search(StructuredQuerySearchDTOModel searchModel)
         {
 
             _httpClient.DefaultRequestHeaders.Add("User-Agent", "C# NominatimClient");
@@ -34,9 +36,9 @@ namespace Nominatim.Clients.Services
             if (response.IsSuccessStatusCode)
             {
                 var apiResponse = await response.Content.ReadAsStringAsync();
-                var deserializedResponse = JsonSerializer.Deserialize<List<ApiResponseModel>>(apiResponse);
+                var deserializedResponse = JsonSerializer.Deserialize<List<QueryResponseDTOModel>>(apiResponse);
 
-                return new RequestResponseModel
+                return new ResponseDTOModel
                 {
                     Status = Status.Success,
                     ApiResponse = deserializedResponse ?? []
@@ -44,7 +46,7 @@ namespace Nominatim.Clients.Services
             }
             else
             {
-                return new RequestResponseModel
+                return new ResponseDTOModel
                 {
                     Status = Status.Error,
                     ErrorMessage = $"Error: {response.StatusCode} - {response.ReasonPhrase}"

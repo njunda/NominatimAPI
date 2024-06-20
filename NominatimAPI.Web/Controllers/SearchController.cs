@@ -1,8 +1,12 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Nominatim.Clients.Context;
 using Nominatim.Clients.Enums;
-using Nominatim.Clients.Models;
+using Nominatim.Clients.Models.DTO.Query;
+using Nominatim.Clients.Models.Entity.Query;
+using Nominatim.Clients.Models.Entity.QueryResponse;
+using Nominatim.Clients.Models.Entity.Reponse;
 using Nominatim.Clients.Services.Interfaces;
 using System.Text.Json;
 
@@ -27,20 +31,22 @@ namespace NominatimAPI.Web.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> Search([FromBody] StructuredQuerySearchModel searchModel)
+        public async Task<IActionResult> Search([FromBody] StructuredQuerySearchDTOModel searchModel)
         {
             var response = await _nominatimClient.Search(searchModel);
 
-            var rest = _mapper.Map<QuerySearchModel>(searchModel);
+            StructuredMinimisedQuerySearchDTOModel line2 = _mapper.Map<StructuredMinimisedQuerySearchDTOModel>(searchModel);
+            line2.ResponseDTO = response;
 
-            //var searchQuery = new SearchQuery
-            //{
-            //    Query = searchModel.Query,
-            //    Response = JsonSerializer.Serialize(response.ApiResponse),
-            //    QueryDate = DateTime.UtcNow
-            //};
+            QuerySearchModel querySearchModel = _mapper.Map<QuerySearchModel>(line2);
 
-            _context.QuerySearchModels.Add(rest);
+
+            ResponseEntityModel ReponseModels = _mapper.Map<ResponseEntityModel>(response);
+
+
+            querySearchModel.SetQueryResponse(ResponseEntityModel);
+
+            _context.QuerySearchModels.Add(querySearchModel);
             await _context.SaveChangesAsync();
 
             return response.Status == Status.Success ? Ok(response.ApiResponse) : StatusCode(500, response.ErrorMessage);
@@ -49,10 +55,11 @@ namespace NominatimAPI.Web.Controllers
         [HttpGet]
         public IActionResult GetRecentQueries()
         {
-            var recentQueries = _context.QuerySearchModels
-                .Take(10)
+            List<QuerySearchModel> recentQueries = _context.QuerySearchModels.Include(b => b.ResponseEntityModel)
+                                                                              .ThenInclude( x=> x.QueryResponseEntityModels)
+                .Take(5)
                 .ToList();
-            return Ok(recentQueries);
+            return Ok(_mapper.Map<List<StructuredMinimisedQuerySearchDTOModel>>(recentQueries));
         }
 
 

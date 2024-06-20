@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Nominatim.Clients.Context;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace NominatimAPI.Web.Migrations
 {
     [DbContext(typeof(NominatimDbContext))]
-    partial class NominatimDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240620143136_addedConfigurationsAndFKRelations")]
+    partial class addedConfigurationsAndFKRelations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -49,6 +52,9 @@ namespace NominatimAPI.Web.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("QueryResponseEntityModelId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("State")
                         .IsRequired()
                         .HasColumnType("text");
@@ -58,6 +64,8 @@ namespace NominatimAPI.Web.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("QueryResponseEntityModelId");
 
                     b.ToTable("QuerySearchModels");
                 });
@@ -127,7 +135,7 @@ namespace NominatimAPI.Web.Migrations
 
                     b.HasIndex("ResponseEntityModelId");
 
-                    b.ToTable("QueryResponseEntityModels");
+                    b.ToTable("QueryResponseEntityModel");
                 });
 
             modelBuilder.Entity("Nominatim.Clients.Models.Entity.Reponse.ResponseEntityModel", b =>
@@ -147,10 +155,18 @@ namespace NominatimAPI.Web.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("QuerySearchModelId")
-                        .IsUnique();
+                    b.HasIndex("QuerySearchModelId");
 
-                    b.ToTable("ResponseEntityModels");
+                    b.ToTable("ResponseEntityModel");
+                });
+
+            modelBuilder.Entity("Nominatim.Clients.Models.Entity.Query.QuerySearchModel", b =>
+                {
+                    b.HasOne("Nominatim.Clients.Models.Entity.QueryResponse.QueryResponseEntityModel", "QueryResponseEntityModel")
+                        .WithMany()
+                        .HasForeignKey("QueryResponseEntityModelId");
+
+                    b.Navigation("QueryResponseEntityModel");
                 });
 
             modelBuilder.Entity("Nominatim.Clients.Models.Entity.QueryResponse.QueryResponseEntityModel", b =>
@@ -167,17 +183,12 @@ namespace NominatimAPI.Web.Migrations
             modelBuilder.Entity("Nominatim.Clients.Models.Entity.Reponse.ResponseEntityModel", b =>
                 {
                     b.HasOne("Nominatim.Clients.Models.Entity.Query.QuerySearchModel", "QuerySearchModel")
-                        .WithOne("ResponseEntityModel")
-                        .HasForeignKey("Nominatim.Clients.Models.Entity.Reponse.ResponseEntityModel", "QuerySearchModelId")
+                        .WithMany()
+                        .HasForeignKey("QuerySearchModelId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("QuerySearchModel");
-                });
-
-            modelBuilder.Entity("Nominatim.Clients.Models.Entity.Query.QuerySearchModel", b =>
-                {
-                    b.Navigation("ResponseEntityModel");
                 });
 
             modelBuilder.Entity("Nominatim.Clients.Models.Entity.Reponse.ResponseEntityModel", b =>

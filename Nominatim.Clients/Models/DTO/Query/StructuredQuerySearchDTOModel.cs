@@ -1,8 +1,8 @@
-﻿using System.Text;
+﻿using Nominatim.Clients.Models.DTO.Response;
 
-namespace Nominatim.Clients.Models
+namespace Nominatim.Clients.Models.DTO.Query
 {
-    public record StructuredQuerySearchModel
+    public record StructuredQuerySearchDTOModel
     {
         public string Amenity { get; set; }
         public string Street { get; set; }
@@ -29,5 +29,23 @@ namespace Nominatim.Clients.Models
 
             return string.Join('+', nonNullProperties);
         }
+    }
+
+
+    public record StructuredMinimisedQuerySearchDTOModel
+    {
+        public string Amenity { get; set; }
+        public string Street { get; set; }
+        public string City { get; set; }
+        public string County { get; set; }
+        public string State { get; set; }
+        public string Country { get; set; }
+        public string PostalCode { get; set; }
+
+        /// <summary>
+        /// The response DTO. 
+        /// </summary>
+        public ResponseDTOModel? ResponseDTO { get; set; }
+
     }
 }
